@@ -11,7 +11,7 @@ public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada;
-    private JButton btnGris;
+    private JButton btnNegativo, btnGris;
 
     public Ventana(){
         super("Procesamiento de imagenes");
@@ -27,19 +27,24 @@ public class Ventana extends JFrame implements ActionListener {
         setContentPane(contentPanel);
 
         imagenOriginal = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
-        imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
+//        imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
 
         contenedorImgOriginal = new JLabel(imagenOriginal);
         contenedorImgOriginal.setBounds(100, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contenedorImgProcesada = new JLabel();
-        contenedorImgProcesada.setBounds(600, 100, imagenProcesada.getIconWidth(), imagenProcesada.getIconHeight());
+        contenedorImgProcesada.setBounds(600, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contentPanel.add(contenedorImgOriginal);
         contentPanel.add(contenedorImgProcesada);
 
+        btnNegativo = new JButton("Negativo");
+        btnNegativo.setBounds(100, 500, 100, 20);
+        btnNegativo.addActionListener(this);
+        contentPanel.add(btnNegativo);
+
         btnGris = new JButton("Gris");
-        btnGris.setBounds(100, 500, 100, 20);
+        btnGris.setBounds(400, 500, 100, 20);
         btnGris.addActionListener(this);
         contentPanel.add(btnGris);
 
@@ -47,6 +52,7 @@ public class Ventana extends JFrame implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        System.out.println(e.paramString());
 //        contenedorImgProcesada.setIcon(imagenOriginal);
         BufferedImage imgN = null;
         try {
@@ -71,20 +77,45 @@ public class Ventana extends JFrame implements ActionListener {
             }
         }
 
-        for (int i = 0; i < imgN.getWidth(); i++){
-            for (int j = 0; j < imgN.getHeight(); j++){
-                double r = 255-mr[i][j];
-                double g = 255-mg[i][j];
-                double b = 255-mb[i][j];
-                double neg = (r*65536)+(g*256)+(b);
-                imgN.setRGB(i, j, (int)neg);
+        if(e.paramString().indexOf("Negativo") != -1){
+            for (int i = 0; i < imgN.getWidth(); i++){
+                for (int j = 0; j < imgN.getHeight(); j++){
+                    double r = 255-mr[i][j];
+                    double g = 255-mg[i][j];
+                    double b = 255-mb[i][j];
+                    double neg = (r*65536)+(g*256)+(b);
+                    imgN.setRGB(i, j, (int)neg);
+                }
             }
+
+            System.out.println("Imagen -> Negativo");
+
+            ImageIcon prueba = new ImageIcon(imgN);
+
+            contenedorImgProcesada.setIcon(prueba);
+        } else if (e.paramString().indexOf("Gris") != -1) {
+            System.out.println("Gris");
+            double[][] mG = new double[ancho][alto];
+            int[][] mrgbG = new int[ancho][alto];
+
+            for (int i = 0; i < ancho; i++){
+                for (int j = 0; j < alto; j++){
+                    double rgb = (mr[i][j]+mg[i][j]+mb[i][j])/3;
+                    double gris = (rgb*65536)+(rgb*256)+(rgb);
+                    imgN.setRGB(i, j, (int)gris);
+                }
+            }
+
+            for (int i = 0; i < ancho; i++){
+                for (int j = 0; j < alto; j++){
+                    mG[i][j] = imgN.getRGB(i, j);
+                    mrgbG[i][j] = ((int)m[i][j]) & 0x000000FF;
+                }
+            }
+
+            ImageIcon prueba = new ImageIcon(imgN);
+
+            contenedorImgProcesada.setIcon(prueba);
         }
-//        printnegativo(ancho, alto, imgN, "Negativo");
-        System.out.println("Imagen -> Negativo");
-
-        ImageIcon prueba = new ImageIcon(imgN);
-
-        contenedorImgProcesada.setIcon(prueba);
     }
 }
