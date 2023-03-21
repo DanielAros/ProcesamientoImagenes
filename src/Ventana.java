@@ -1,4 +1,3 @@
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -18,9 +17,11 @@ public class Ventana extends JFrame implements ActionListener {
 
     double[][] back;
     double n = 0;
+    private String PATH;
 
-    public Ventana(){
+    public Ventana(String PATH){
         super("Procesamiento de imagenes");
+        this.PATH = PATH;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Crea la barra de menú
@@ -51,7 +52,7 @@ public class Ventana extends JFrame implements ActionListener {
         contentPanel.setBackground(Color.gray);
         setContentPane(contentPanel);
 
-        imagenOriginal = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
+        imagenOriginal = new ImageIcon(PATH);
 //        imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
 
 
@@ -99,7 +100,7 @@ public class Ventana extends JFrame implements ActionListener {
 //        contenedorImgProcesada.setIcon(imagenOriginal);
         BufferedImage imgN = null;
         try {
-            imgN = ImageIO.read(new File("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png"));
+            imgN = ImageIO.read(new File(PATH));
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -165,7 +166,7 @@ public class Ventana extends JFrame implements ActionListener {
 
             BufferedImage imgB = null;
             try {
-                imgB = ImageIO.read(new File("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png"));
+                imgB = ImageIO.read(new File(PATH));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
