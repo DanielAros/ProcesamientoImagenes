@@ -3,6 +3,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -11,14 +13,35 @@ public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada;
-    private JButton btnNegativo, btnGris;
+    private JButton btnNegativo, btnGris, btnBrillo;
 
+    private double n = 0;
+    private double[][] back;
     public Ventana(){
         super("Procesamiento de imagenes");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        // Crea la barra de menú
+        JMenuBar barraMenu = new JMenuBar();
+
+        // Crea los menús
+        JMenu menuPuntual = new JMenu("Procesamiento puntual");
+        JMenu menuEspacial = new JMenu("Procesamiento espacial");
+
+        // Crea los items del menú Puntual
+        JMenuItem nuevoItem = new JMenuItem("item1");
+
+        // Agrega los items al menú Archivo
+        menuPuntual.add(nuevoItem);
+
+        // Agrega los menús a la barra de menú
+        barraMenu.add(menuPuntual);
+        barraMenu.add(menuEspacial);
+
+        setJMenuBar(barraMenu);
+
         //Asignamos la posicion inicial y las dimensiones de la ventana.
-        setBounds(250, 100, 1000, 600);
+        setBounds(250, 100, 700, 600);
 
         //Creamos el contenedor dentro del JFrame para despues agregar todos los elementos que tendra la interfaz
         contentPanel = new JPanel();
@@ -33,7 +56,7 @@ public class Ventana extends JFrame implements ActionListener {
         contenedorImgOriginal.setBounds(100, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contenedorImgProcesada = new JLabel();
-        contenedorImgProcesada.setBounds(600, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
+        contenedorImgProcesada.setBounds(400, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contentPanel.add(contenedorImgOriginal);
         contentPanel.add(contenedorImgProcesada);
@@ -44,9 +67,14 @@ public class Ventana extends JFrame implements ActionListener {
         contentPanel.add(btnNegativo);
 
         btnGris = new JButton("Gris");
-        btnGris.setBounds(400, 500, 100, 20);
+        btnGris.setBounds(220, 500, 100, 20);
         btnGris.addActionListener(this);
         contentPanel.add(btnGris);
+
+        btnBrillo = new JButton("Brillo");
+        btnBrillo.setBounds(340, 500, 100, 20);
+        btnBrillo.addActionListener(this);
+        contentPanel.add(btnBrillo);
 
         setVisible(true);
     }
@@ -76,6 +104,8 @@ public class Ventana extends JFrame implements ActionListener {
                 mb[i][j] = ((int)m[i][j]) & 0x000000FF;
             }
         }
+
+        back = m;
 
         if(e.paramString().indexOf("Negativo") != -1){
             for (int i = 0; i < imgN.getWidth(); i++){
@@ -114,6 +144,33 @@ public class Ventana extends JFrame implements ActionListener {
             }
 
             ImageIcon prueba = new ImageIcon(imgN);
+
+            contenedorImgProcesada.setIcon(prueba);
+        } else if(e.paramString().indexOf("Brillo") != -1){
+            System.out.println("Brillo");
+
+            BufferedImage imagenModificada = new BufferedImage(imgN.getWidth(), imgN.getHeight(), imgN.getType());
+            Color colorPixel;
+
+            for (int i = 0; i < imgN.getWidth(); i++) {
+                for (int j = 0; j < imgN.getHeight(); j++) {
+                    // Obtener el color del pixel en (i,j)
+                    colorPixel = new Color(imgN.getRGB(i, j));
+
+                    // Ajustar el brillo del pixel sumando o restando el valor dado
+                    int r = Math.min(255, Math.max(0, colorPixel.getRed() + -200));
+                    int g = Math.min(255, Math.max(0, colorPixel.getGreen() + -200));
+                    int b = Math.min(255, Math.max(0, colorPixel.getBlue() + -200));
+
+                    // Crear el nuevo color del pixel
+                    Color nuevoColor = new Color(r, g, b);
+
+                    // Establecer el nuevo color del pixel en la imagen modificada
+                    imagenModificada.setRGB(i, j, nuevoColor.getRGB());
+                }
+            }
+
+            ImageIcon prueba = new ImageIcon(imagenModificada);
 
             contenedorImgProcesada.setIcon(prueba);
         }
