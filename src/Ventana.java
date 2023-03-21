@@ -1,3 +1,4 @@
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -12,11 +13,12 @@ import java.io.IOException;
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
-    private JLabel contenedorImgOriginal, contenedorImgProcesada;
+    private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
     private JButton btnNegativo, btnGris, btnBrillo;
 
-    private double n = 0;
-    private double[][] back;
+    double[][] back;
+    double n = 0;
+
     public Ventana(){
         super("Procesamiento de imagenes");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -52,15 +54,26 @@ public class Ventana extends JFrame implements ActionListener {
         imagenOriginal = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
 //        imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
 
+
+        //IMAGEN ORIGINAL
         contenedorImgOriginal = new JLabel(imagenOriginal);
         contenedorImgOriginal.setBounds(100, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
+        //HISTOGRAMA
+        histograma1 = new JLabel();
+        histograma1.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        histograma1.setBounds(100, 400, 200, 50);
+        contentPanel.add(histograma1);
 
+
+        //IMAGEN PROCESADA
         contenedorImgProcesada = new JLabel();
         contenedorImgProcesada.setBounds(400, 100, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contentPanel.add(contenedorImgOriginal);
         contentPanel.add(contenedorImgProcesada);
 
+
+        //BOTONES
         btnNegativo = new JButton("Negativo");
         btnNegativo.setBounds(100, 500, 100, 20);
         btnNegativo.addActionListener(this);
@@ -75,6 +88,8 @@ public class Ventana extends JFrame implements ActionListener {
         btnBrillo.setBounds(340, 500, 100, 20);
         btnBrillo.addActionListener(this);
         contentPanel.add(btnBrillo);
+
+
 
         setVisible(true);
     }
@@ -106,7 +121,6 @@ public class Ventana extends JFrame implements ActionListener {
         }
 
         back = m;
-
         if(e.paramString().indexOf("Negativo") != -1){
             for (int i = 0; i < imgN.getWidth(); i++){
                 for (int j = 0; j < imgN.getHeight(); j++){
@@ -149,28 +163,56 @@ public class Ventana extends JFrame implements ActionListener {
         } else if(e.paramString().indexOf("Brillo") != -1){
             System.out.println("Brillo");
 
-            BufferedImage imagenModificada = new BufferedImage(imgN.getWidth(), imgN.getHeight(), imgN.getType());
-            Color colorPixel;
-
-            for (int i = 0; i < imgN.getWidth(); i++) {
-                for (int j = 0; j < imgN.getHeight(); j++) {
-                    // Obtener el color del pixel en (i,j)
-                    colorPixel = new Color(imgN.getRGB(i, j));
-
-                    // Ajustar el brillo del pixel sumando o restando el valor dado
-                    int r = Math.min(255, Math.max(0, colorPixel.getRed() + -200));
-                    int g = Math.min(255, Math.max(0, colorPixel.getGreen() + -200));
-                    int b = Math.min(255, Math.max(0, colorPixel.getBlue() + -200));
-
-                    // Crear el nuevo color del pixel
-                    Color nuevoColor = new Color(r, g, b);
-
-                    // Establecer el nuevo color del pixel en la imagen modificada
-                    imagenModificada.setRGB(i, j, nuevoColor.getRGB());
-                }
+            BufferedImage imgB = null;
+            try {
+                imgB = ImageIO.read(new File("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png"));
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
             }
+            BufferedImage finalImgB = imgB;
+            btnBrillo.addKeyListener(new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent l) {
+                    if(l.getKeyChar() == '-'){
+                        n++;
+                    }
 
-            ImageIcon prueba = new ImageIcon(imagenModificada);
+                    if(l.getKeyChar() == '+'){
+                        n--;
+                    }
+                    if (n > 0){
+                        for (int i = 0; i < ancho; i++){
+                            for (int j = 0; j < alto; j++){
+                                double r = Math.round((Math.pow(((mr[i][j])/255.0), n))*255.0);
+                                double g = Math.round((Math.pow(((mg[i][j])/255.0), n))*255.0);
+                                double b = Math.round((Math.pow(((mb[i][j])/255.0), n))*255.0);
+                                double brillop = (r*65536)+(g*256)+(b);;
+                                finalImgB.setRGB(i, j, (int)brillop);
+                            }
+                        }
+                    }
+                    if (n < 0){
+                        for (int i = 0; i < ancho; i++){
+                            for (int j = 0; j < alto; j++){
+                                double r = Math.round((Math.pow(((mr[i][j])/255.0), 1/(Math.abs(n))))*255.0);
+                                double g = Math.round((Math.pow(((mg[i][j])/255.0), 1/(Math.abs(n))))*255.0);
+                                double b = Math.round((Math.pow(((mb[i][j])/255.0), 1/(Math.abs(n))))*255.0);
+                                double brillop = (r*65536)+(g*256)+(b);
+                                finalImgB.setRGB(i, j, (int)brillop);
+                            }
+                        }
+                    }
+                    if (n == 0){
+                        for (int i = 0; i < ancho; i++){
+                            for (int j = 0; j < alto; j++){
+                                finalImgB.setRGB(i, j, (int)back[i][j]);}
+                        }
+                    }
+                    contenedorImgProcesada.repaint();
+                    System.out.println("Factor de brillo: " + n);
+                }
+            });
+            ImageIcon prueba = new ImageIcon(finalImgB);
 
             contenedorImgProcesada.setIcon(prueba);
         }
