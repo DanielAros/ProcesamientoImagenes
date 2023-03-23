@@ -1,3 +1,4 @@
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -89,6 +90,17 @@ public class Ventana extends JFrame implements ActionListener {
         btnBrillo.setBounds(340, 500, 100, 20);
         btnBrillo.addActionListener(this);
         contentPanel.add(btnBrillo);
+        
+        btnBrillo = new JButton("Binarizacion");
+        btnBrillo.setBounds(460, 500, 100, 20);
+        btnBrillo.addActionListener(this);
+        contentPanel.add(btnBrillo);
+        
+        btnBrillo = new JButton("Umbral");
+        btnBrillo.setBounds(580, 500, 100, 20);
+        btnBrillo.addActionListener(this);
+        contentPanel.add(btnBrillo);
+        
 
 
 
@@ -161,6 +173,52 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgN);
 
             contenedorImgProcesada.setIcon(prueba);
+            
+        }if(e.paramString().indexOf("Binarizacion") != -1){
+            
+            int umbral = 128;
+            for (int y = 0; y < imgN.getHeight(); y++) {
+                for (int x = 0; x < imgN.getWidth(); x++) {
+                    // Obtener el color del pixel original
+                    Color colorOriginal = new Color(imgN.getRGB(x, y));
+
+                    // Calcular la luminosidad del pixel (0-255)
+                    int luminosidad = (int) (0.2126 * colorOriginal.getRed() + 0.7152 * colorOriginal.getGreen() + 0.0722 * colorOriginal.getBlue());
+
+                    // Asignar el color blanco o negro según el umbral
+                    if (luminosidad > umbral) {
+                        imgN.setRGB(x, y, Color.WHITE.getRGB());
+                    } else {
+                        imgN.setRGB(x, y, Color.BLACK.getRGB());
+                    }
+                }
+            }
+            
+            System.out.println("Imagen -> Binarizacion");
+            ImageIcon prueba = new ImageIcon(imgN);
+            
+            contenedorImgProcesada.setIcon(prueba);
+            
+        }if(e.paramString().indexOf("Umbral") != -1){
+            
+        	int threshold = 20; // Umbral predefinido
+        	for (int y = 0; y < imgN.getHeight(); y++) {
+        	    for (int x = 0; x < imgN.getWidth(); x++) {
+        	        int rgb = imgN.getRGB(x, y);
+        	        int r = (rgb >> 16) & 0xFF;
+        	        int g = (rgb >> 8) & 0xFF;
+        	        int b = rgb & 0xFF;
+        	        int gray = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+        	        int value = gray > threshold ? 255 : 0;
+        	        imgN.setRGB(x, y, (value << 16) | (value << 8) | value);
+        	    }
+        	}
+            
+            System.out.println("Imagen -> Umbral");
+            ImageIcon prueba = new ImageIcon(imgN);
+            
+            contenedorImgProcesada.setIcon(prueba);
+            
         } else if(e.paramString().indexOf("Brillo") != -1){
             System.out.println("Brillo");
 
@@ -217,5 +275,7 @@ public class Ventana extends JFrame implements ActionListener {
 
             contenedorImgProcesada.setIcon(prueba);
         }
+        
+        
     }
 }
