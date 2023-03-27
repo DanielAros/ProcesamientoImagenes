@@ -12,6 +12,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.nio.file.Path;
 
 
 public class Ventana extends JFrame implements ActionListener {
@@ -23,11 +24,16 @@ public class Ventana extends JFrame implements ActionListener {
     double[][] back;
     double n = 0;
     private String PATH;
+    private JPanel panel1;
 
-    public Ventana(String PATH){
+    public Ventana(String PATH) throws IOException {
         super("Procesamiento de imagenes");
         this.PATH = PATH;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        BufferedImage imagen = ImageIO.read(new File(PATH));
+        Histograma histograma = new Histograma(imagen);
+
 
         // Crea la barra de menú
         JMenuBar barraMenu = new JMenuBar();
@@ -58,7 +64,7 @@ public class Ventana extends JFrame implements ActionListener {
         setContentPane(contentPanel);
 
         imagenOriginal = new ImageIcon(PATH);
-//        imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
+        //imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
 
         //IMAGEN ORIGINAL
         contenedorImgOriginal = new JLabel(imagenOriginal);
@@ -68,6 +74,7 @@ public class Ventana extends JFrame implements ActionListener {
         histograma1 = new JLabel();
         histograma1.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
         histograma1.setBounds(50, 550, imagenOriginal.getIconWidth(), 100);
+        contentPanel.add(histograma).setBounds(50, 550, imagenOriginal.getIconWidth(), 100);
         contentPanel.add(histograma1);
 
         //HISTOGRAMA 2
@@ -157,24 +164,24 @@ public class Ventana extends JFrame implements ActionListener {
         int[][] mg = new int[ancho][alto];
         int[][] mb = new int[ancho][alto];
 
-        for (int i = 0; i < ancho; i++){
-            for (int j = 0; j < alto; j++){
+        for (int i = 0; i < ancho; i++) {
+            for (int j = 0; j < alto; j++) {
                 m[i][j] = imgN.getRGB(i, j); // RGB = (R*65536)+(G*256)+B , (when R is RED, G is GREEN and B is BLUE)
-                mr[i][j] = ((int)m[i][j]>> 16) & 0x000000FF;
-                mg[i][j] = ((int)m[i][j]>> 8) & 0x000000FF;
-                mb[i][j] = ((int)m[i][j]) & 0x000000FF;
+                mr[i][j] = ((int) m[i][j] >> 16) & 0x000000FF;
+                mg[i][j] = ((int) m[i][j] >> 8) & 0x000000FF;
+                mb[i][j] = ((int) m[i][j]) & 0x000000FF;
             }
         }
 
         back = m;
-        if(e.paramString().indexOf("Negativo") != -1){
-            for (int i = 0; i < imgN.getWidth(); i++){
-                for (int j = 0; j < imgN.getHeight(); j++){
-                    double r = 255-mr[i][j];
-                    double g = 255-mg[i][j];
-                    double b = 255-mb[i][j];
-                    double neg = (r*65536)+(g*256)+(b);
-                    imgN.setRGB(i, j, (int)neg);
+        if (e.paramString().indexOf("Negativo") != -1) {
+            for (int i = 0; i < imgN.getWidth(); i++) {
+                for (int j = 0; j < imgN.getHeight(); j++) {
+                    double r = 255 - mr[i][j];
+                    double g = 255 - mg[i][j];
+                    double b = 255 - mb[i][j];
+                    double neg = (r * 65536) + (g * 256) + (b);
+                    imgN.setRGB(i, j, (int) neg);
                 }
             }
 
@@ -189,26 +196,25 @@ public class Ventana extends JFrame implements ActionListener {
             double[][] mG = new double[ancho][alto];
             int[][] mrgbG = new int[ancho][alto];
 
-            for (int i = 0; i < ancho; i++){
-                for (int j = 0; j < alto; j++){
-                    double rgb = (mr[i][j]+mg[i][j]+mb[i][j])/3;
-                    double gris = (rgb*65536)+(rgb*256)+(rgb);
-                    imgN.setRGB(i, j, (int)gris);
+            for (int i = 0; i < ancho; i++) {
+                for (int j = 0; j < alto; j++) {
+                    double rgb = (mr[i][j] + mg[i][j] + mb[i][j]) / 3;
+                    double gris = (rgb * 65536) + (rgb * 256) + (rgb);
+                    imgN.setRGB(i, j, (int) gris);
                 }
             }
 
-            for (int i = 0; i < ancho; i++){
-                for (int j = 0; j < alto; j++){
+            for (int i = 0; i < ancho; i++) {
+                for (int j = 0; j < alto; j++) {
                     mG[i][j] = imgN.getRGB(i, j);
-                    mrgbG[i][j] = ((int)m[i][j]) & 0x000000FF;
+                    mrgbG[i][j] = ((int) m[i][j]) & 0x000000FF;
                 }
             }
 
             ImageIcon prueba = new ImageIcon(imgN);
-            contenedorImgOriginal.setIcon(imagenOriginal);
             contenedorImgProcesada.setIcon(prueba);
 
-        } else if(e.paramString().indexOf("Brillo") != -1){
+        } else if (e.paramString().indexOf("Brillo") != -1) {
             System.out.println("Brillo");
 
             BufferedImage imgB = null;
@@ -221,39 +227,41 @@ public class Ventana extends JFrame implements ActionListener {
             btnBrillo.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyPressed(KeyEvent l) {
-                    if(l.getKeyChar() == '-'){
+                    if (l.getKeyChar() == '-') {
                         n++;
                     }
 
-                    if(l.getKeyChar() == '+'){
+                    if (l.getKeyChar() == '+') {
                         n--;
                     }
-                    if (n > 0){
-                        for (int i = 0; i < ancho; i++){
-                            for (int j = 0; j < alto; j++){
-                                double r = Math.round((Math.pow(((mr[i][j])/255.0), n))*255.0);
-                                double g = Math.round((Math.pow(((mg[i][j])/255.0), n))*255.0);
-                                double b = Math.round((Math.pow(((mb[i][j])/255.0), n))*255.0);
-                                double brillop = (r*65536)+(g*256)+(b);;
-                                finalImgB.setRGB(i, j, (int)brillop);
+                    if (n > 0) {
+                        for (int i = 0; i < ancho; i++) {
+                            for (int j = 0; j < alto; j++) {
+                                double r = Math.round((Math.pow(((mr[i][j]) / 255.0), n)) * 255.0);
+                                double g = Math.round((Math.pow(((mg[i][j]) / 255.0), n)) * 255.0);
+                                double b = Math.round((Math.pow(((mb[i][j]) / 255.0), n)) * 255.0);
+                                double brillop = (r * 65536) + (g * 256) + (b);
+                                ;
+                                finalImgB.setRGB(i, j, (int) brillop);
                             }
                         }
                     }
-                    if (n < 0){
-                        for (int i = 0; i < ancho; i++){
-                            for (int j = 0; j < alto; j++){
-                                double r = Math.round((Math.pow(((mr[i][j])/255.0), 1/(Math.abs(n))))*255.0);
-                                double g = Math.round((Math.pow(((mg[i][j])/255.0), 1/(Math.abs(n))))*255.0);
-                                double b = Math.round((Math.pow(((mb[i][j])/255.0), 1/(Math.abs(n))))*255.0);
-                                double brillop = (r*65536)+(g*256)+(b);
-                                finalImgB.setRGB(i, j, (int)brillop);
+                    if (n < 0) {
+                        for (int i = 0; i < ancho; i++) {
+                            for (int j = 0; j < alto; j++) {
+                                double r = Math.round((Math.pow(((mr[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
+                                double g = Math.round((Math.pow(((mg[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
+                                double b = Math.round((Math.pow(((mb[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
+                                double brillop = (r * 65536) + (g * 256) + (b);
+                                finalImgB.setRGB(i, j, (int) brillop);
                             }
                         }
                     }
-                    if (n == 0){
-                        for (int i = 0; i < ancho; i++){
-                            for (int j = 0; j < alto; j++){
-                                finalImgB.setRGB(i, j, (int)back[i][j]);}
+                    if (n == 0) {
+                        for (int i = 0; i < ancho; i++) {
+                            for (int j = 0; j < alto; j++) {
+                                finalImgB.setRGB(i, j, (int) back[i][j]);
+                            }
                         }
                     }
                     contenedorImgProcesada.repaint();
@@ -264,8 +272,8 @@ public class Ventana extends JFrame implements ActionListener {
 
             contenedorImgProcesada.setIcon(prueba);
 
-        //Se obtienen los valores de RGB, se hace una suma ponderada de estos valores y si es mayor a 128 el pixel se establece en blanco, sino se establece en negro
-        }else if(e.paramString().indexOf("Binarizacion") != -1){
+            //Se obtienen los valores de RGB, se hace una suma ponderada de estos valores y si es mayor a 128 el pixel se establece en blanco, sino se establece en negro
+        } else if (e.paramString().indexOf("Binarizacion") != -1) {
             System.out.println("Binarización");
 
             BufferedImage imgBin = null;
@@ -296,7 +304,7 @@ public class Ventana extends JFrame implements ActionListener {
             contenedorImgProcesada.setIcon(prueba);
 
             // Segmentación por Umbrales
-        }else if(e.paramString().indexOf("Umbral") != -1){
+        } else if (e.paramString().indexOf("Umbral") != -1) {
             System.out.println("Umbral");
 
             BufferedImage imgUmb = null;
@@ -327,7 +335,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(umb);
 
             contenedorImgProcesada.setIcon(prueba);
-        }else if(e.paramString().indexOf("Composicion") != -1){
+        } else if (e.paramString().indexOf("Composicion") != -1) {
             System.out.println("Composición");
 
             BufferedImage imgComp = null;
@@ -370,7 +378,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgResultado);
 
             contenedorImgProcesada.setIcon(prueba);
-        }else if(e.paramString().indexOf("Suma") != -1){
+        } else if (e.paramString().indexOf("Suma") != -1) {
             System.out.println("Suma");
 
             BufferedImage imgSum = null;
@@ -400,8 +408,8 @@ public class Ventana extends JFrame implements ActionListener {
 
             BufferedImage imgResultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
 
-            for(int i = 0; i < ancho; i++){
-                for(int j = 0; j < alto; j++){
+            for (int i = 0; i < ancho; i++) {
+                for (int j = 0; j < alto; j++) {
                     int valorPixel1 = imgSum.getRGB(i, j);
                     int valorPixel2 = imgProcesada.getRGB(i, j);
                     int valorResultado = sumarValoresPixel(valorPixel1, valorPixel2);
@@ -414,7 +422,7 @@ public class Ventana extends JFrame implements ActionListener {
             contenedorImgProcesada.setIcon(prueba);
 
 
-        }else if(e.paramString().indexOf("Resta") != -1){
+        } else if (e.paramString().indexOf("Resta") != -1) {
             System.out.println("Resta");
 
             BufferedImage imgRes = null;
@@ -444,8 +452,8 @@ public class Ventana extends JFrame implements ActionListener {
 
             BufferedImage imgResultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
 
-            for(int i = 0; i < ancho; i++){
-                for(int j = 0; j < alto; j++){
+            for (int i = 0; i < ancho; i++) {
+                for (int j = 0; j < alto; j++) {
 
                     Color color1 = new Color(imgRes.getRGB(i, j));
                     Color color2 = new Color(imgProcesada.getRGB(i, j));
@@ -464,8 +472,8 @@ public class Ventana extends JFrame implements ActionListener {
 
             //Reiniciar
         } else if (e.paramString().indexOf("Atras") != -1) {
-            
-        } else if(e.paramString().indexOf("Reiniciar") != -1){
+
+        } else if (e.paramString().indexOf("Reiniciar") != -1) {
 
 
         }
@@ -489,4 +497,62 @@ public class Ventana extends JFrame implements ActionListener {
 
         return (alphaResultado << 24) | (redResultado << 16) | (greenResultado << 8) | blueResultado;
     }
+
+    public class Histograma extends JPanel {
+
+        private BufferedImage imagen;
+
+        public Histograma(BufferedImage imagen) {
+            this.imagen = imagen;
+        }
+
+        @Override
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            int width = getWidth();
+            int height = getHeight();
+            int[] histogramaR = new int[256];
+            int[] histogramaG = new int[256];
+            int[] histogramaB = new int[256];
+
+            for (int i = 0; i < imagen.getWidth(); i++) {
+                for (int j = 0; j < imagen.getHeight(); j++) {
+                    Color color = new Color(imagen.getRGB(i, j));
+                    histogramaR[color.getRed()]++;
+                    histogramaG[color.getGreen()]++;
+                    histogramaB[color.getBlue()]++;
+                }
+            }
+
+            int maxValor = 0;
+            for (int i = 0; i < 256; i++) {
+                if (histogramaR[i] > maxValor) {
+                    maxValor = histogramaR[i];
+                }
+                if (histogramaG[i] > maxValor) {
+                    maxValor = histogramaG[i];
+                }
+                if (histogramaB[i] > maxValor) {
+                    maxValor = histogramaB[i];
+                }
+            }
+
+            double escala = (double) height / (double) maxValor;
+
+            g.setColor(Color.BLACK);
+            g.drawLine(50, height - 50, width - 50, height - 50);
+            g.drawLine(50, height - 50, 50, 50);
+
+            for (int i = 0; i < 256; i++) {
+                g.setColor(Color.RED);
+                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaR[i] * escala)));
+                g.setColor(Color.GREEN);
+                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaG[i] * escala)));
+                g.setColor(Color.BLUE);
+                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaB[i] * escala)));
+            }
+        }
+
+    }
+
 }
