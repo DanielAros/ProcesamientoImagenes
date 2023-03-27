@@ -31,10 +31,46 @@ public class Ventana extends JFrame implements ActionListener {
         this.PATH = PATH;
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        //Asignamos la posicion inicial y las dimensiones de la ventana.
+        setBounds(50, 30, 1400, 740);
+
+
+        //Creamos el contenedor dentro del JFrame para despues agregar todos los elementos que tendra la interfaz
+        contentPanel = new JPanel();
+        contentPanel.setLayout(null);
+        contentPanel.setBackground(Color.gray);
+        setContentPane(contentPanel);
+
+        inicializacionMenu();
+
+
+        imagenOriginal = new ImageIcon(PATH);
+
+        //IMAGEN ORIGINAL
+        contenedorImgOriginal = new JLabel(imagenOriginal);
+        contenedorImgOriginal.setBounds(50, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
+
+        //Creacion del histograma para la imagen original
         BufferedImage imagen = ImageIO.read(new File(PATH));
         Histograma histograma = new Histograma(imagen);
 
+        //Se define donde va a estar el histograma de la imagen izquierda
+        contentPanel.add(histograma).setBounds(50, 450, imagenOriginal.getIconWidth(), 100);
 
+        //Se asigna el espacio para la imagen a procesar.
+        contenedorImgProcesada = new JLabel();
+        contenedorImgProcesada.setBounds(700, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
+
+        contentPanel.add(contenedorImgOriginal);
+        contentPanel.add(contenedorImgProcesada);
+
+
+        //BOTONES
+       crearBotones();
+
+        setVisible(true);
+    }
+    private void inicializacionMenu(){
         // Crea la barra de menú
         JMenuBar barraMenu = new JMenuBar();
 
@@ -53,96 +89,57 @@ public class Ventana extends JFrame implements ActionListener {
         barraMenu.add(menuEspacial);
 
         setJMenuBar(barraMenu);
-
-        //Asignamos la posicion inicial y las dimensiones de la ventana.
-        setBounds(50, 50, 1400, 900);
-
-        //Creamos el contenedor dentro del JFrame para despues agregar todos los elementos que tendra la interfaz
-        contentPanel = new JPanel();
-        contentPanel.setLayout(null);
-        contentPanel.setBackground(Color.gray);
-        setContentPane(contentPanel);
-
-        imagenOriginal = new ImageIcon(PATH);
-        //imagenProcesada = new ImageIcon("C:\\Users\\daros\\OneDrive\\Escritorio\\Fotos\\bob.png");
-
-        //IMAGEN ORIGINAL
-        contenedorImgOriginal = new JLabel(imagenOriginal);
-        contenedorImgOriginal.setBounds(50, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
-
-        //HISTOGRAMA
-        histograma1 = new JLabel();
-        histograma1.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
-        histograma1.setBounds(50, 550, imagenOriginal.getIconWidth(), 100);
-        contentPanel.add(histograma).setBounds(50, 550, imagenOriginal.getIconWidth(), 100);
-        contentPanel.add(histograma1);
-
-        //HISTOGRAMA 2
-        histograma2 = new JLabel();
-        histograma2.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
-        histograma2.setBounds(700, 550, imagenOriginal.getIconWidth(), 100);
-        contentPanel.add(histograma2);
-
-        //IMAGEN PROCESADA
-        contenedorImgProcesada = new JLabel();
-        contenedorImgProcesada.setBounds(700, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
-
-        contentPanel.add(contenedorImgOriginal);
-        contentPanel.add(contenedorImgProcesada);
-
-
-        //BOTONES
+    }
+    private void crearBotones(){
         btnNegativo = new JButton("Negativo");
-        btnNegativo.setBounds(50, 700, 100, 20);
+        btnNegativo.setBounds(50, 600, 100, 20);
         btnNegativo.addActionListener(this);
         contentPanel.add(btnNegativo);
 
         btnGris = new JButton("Gris");
-        btnGris.setBounds(170, 700, 100, 20);
+        btnGris.setBounds(170, 600, 100, 20);
         btnGris.addActionListener(this);
         contentPanel.add(btnGris);
 
         btnBrillo = new JButton("Brillo");
-        btnBrillo.setBounds(290, 700, 100, 20);
+        btnBrillo.setBounds(290, 600, 100, 20);
         btnBrillo.addActionListener(this);
         contentPanel.add(btnBrillo);
 
         btnBinarizacion = new JButton("Binarizacion");
-        btnBinarizacion.setBounds(410, 700, 100, 20);
+        btnBinarizacion.setBounds(410, 600, 100, 20);
         btnBinarizacion.addActionListener(this);
         contentPanel.add(btnBinarizacion);
 
         btnUmbral = new JButton("Umbral");
-        btnUmbral.setBounds(530, 700, 100, 20);
+        btnUmbral.setBounds(530, 600, 100, 20);
         btnUmbral.addActionListener(this);
         contentPanel.add(btnUmbral);
 
         btnComposicion = new JButton("Composicion");
-        btnComposicion.setBounds(650, 700, 100, 20);
+        btnComposicion.setBounds(650, 600, 100, 20);
         btnComposicion.addActionListener(this);
         contentPanel.add(btnComposicion);
 
         btnSuma = new JButton("Suma");
-        btnSuma.setBounds(770, 700, 100, 20);
+        btnSuma.setBounds(770, 600, 100, 20);
         btnSuma.addActionListener(this);
         contentPanel.add(btnSuma);
 
         btnResta = new JButton("Resta");
-        btnResta.setBounds(900, 700, 100, 20);
+        btnResta.setBounds(900, 600, 100, 20);
         btnResta.addActionListener(this);
         contentPanel.add(btnResta);
 
         btnAtras = new JButton("Atras");
-        btnAtras.setBounds(1020, 700, 100, 20);
+        btnAtras.setBounds(1020, 600, 100, 20);
         btnAtras.addActionListener(this);
         contentPanel.add(btnAtras);
 
         btnReiniciar = new JButton("Reiniciar");
-        btnReiniciar.setBounds(1140, 700, 100, 20);
+        btnReiniciar.setBounds(1140, 600, 100, 20);
         btnReiniciar.addActionListener(this);
         contentPanel.add(btnReiniciar);
-
-        setVisible(true);
     }
 
 
@@ -189,6 +186,9 @@ public class Ventana extends JFrame implements ActionListener {
 
             ImageIcon prueba = new ImageIcon(imgN);
 
+            llamadaHistograma(prueba);
+
+
 
             contenedorImgProcesada.setIcon(prueba);
         } else if (e.paramString().indexOf("Gris") != -1) {
@@ -213,6 +213,8 @@ public class Ventana extends JFrame implements ActionListener {
 
             ImageIcon prueba = new ImageIcon(imgN);
             contenedorImgProcesada.setIcon(prueba);
+
+            llamadaHistograma(prueba);
 
         } else if (e.paramString().indexOf("Brillo") != -1) {
             System.out.println("Brillo");
@@ -271,6 +273,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(finalImgB);
 
             contenedorImgProcesada.setIcon(prueba);
+            llamadaHistograma(prueba);
 
             //Se obtienen los valores de RGB, se hace una suma ponderada de estos valores y si es mayor a 128 el pixel se establece en blanco, sino se establece en negro
         } else if (e.paramString().indexOf("Binarizacion") != -1) {
@@ -302,6 +305,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(bin);
 
             contenedorImgProcesada.setIcon(prueba);
+            llamadaHistograma(prueba);
 
             // Segmentación por Umbrales
         } else if (e.paramString().indexOf("Umbral") != -1) {
@@ -335,6 +339,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(umb);
 
             contenedorImgProcesada.setIcon(prueba);
+            llamadaHistograma(prueba);
         } else if (e.paramString().indexOf("Composicion") != -1) {
             System.out.println("Composición");
 
@@ -378,6 +383,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgResultado);
 
             contenedorImgProcesada.setIcon(prueba);
+            llamadaHistograma(prueba);
         } else if (e.paramString().indexOf("Suma") != -1) {
             System.out.println("Suma");
 
@@ -420,7 +426,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgResultado);
 
             contenedorImgProcesada.setIcon(prueba);
-
+            llamadaHistograma(prueba);
 
         } else if (e.paramString().indexOf("Resta") != -1) {
             System.out.println("Resta");
@@ -469,7 +475,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgResultado);
 
             contenedorImgProcesada.setIcon(prueba);
-
+            llamadaHistograma(prueba);
             //Reiniciar
         } else if (e.paramString().indexOf("Atras") != -1) {
 
@@ -498,61 +504,13 @@ public class Ventana extends JFrame implements ActionListener {
         return (alphaResultado << 24) | (redResultado << 16) | (greenResultado << 8) | blueResultado;
     }
 
-    public class Histograma extends JPanel {
-
-        private BufferedImage imagen;
-
-        public Histograma(BufferedImage imagen) {
-            this.imagen = imagen;
-        }
-
-        @Override
-        public void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            int width = getWidth();
-            int height = getHeight();
-            int[] histogramaR = new int[256];
-            int[] histogramaG = new int[256];
-            int[] histogramaB = new int[256];
-
-            for (int i = 0; i < imagen.getWidth(); i++) {
-                for (int j = 0; j < imagen.getHeight(); j++) {
-                    Color color = new Color(imagen.getRGB(i, j));
-                    histogramaR[color.getRed()]++;
-                    histogramaG[color.getGreen()]++;
-                    histogramaB[color.getBlue()]++;
-                }
-            }
-
-            int maxValor = 0;
-            for (int i = 0; i < 256; i++) {
-                if (histogramaR[i] > maxValor) {
-                    maxValor = histogramaR[i];
-                }
-                if (histogramaG[i] > maxValor) {
-                    maxValor = histogramaG[i];
-                }
-                if (histogramaB[i] > maxValor) {
-                    maxValor = histogramaB[i];
-                }
-            }
-
-            double escala = (double) height / (double) maxValor;
-
-            g.setColor(Color.BLACK);
-            g.drawLine(20, height - 20, width - 20, height - 20);
-            g.drawLine(20, height - 20, 20, 20);
-
-            for (int i = 0; i < 256; i++) {
-                g.setColor(Color.RED);
-                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaR[i] * escala)));
-                g.setColor(Color.GREEN);
-                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaG[i] * escala)));
-                g.setColor(Color.BLUE);
-                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaB[i] * escala)));
-            }
-        }
-
+    private void llamadaHistograma(ImageIcon imagen){
+        Image imagen1 = imagen.getImage();
+        BufferedImage imagenProcesar = (BufferedImage) imagen1;
+        Histograma histograma = new Histograma(imagenProcesar);
+        contentPanel.add(histograma).setBounds(700, 450, imagenOriginal.getIconWidth(), 100);
     }
+
+
 
 }
