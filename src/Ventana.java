@@ -540,16 +540,16 @@ public class Ventana extends JFrame implements ActionListener {
             double escala = (double) height / (double) maxValor;
 
             g.setColor(Color.BLACK);
-            g.drawLine(50, height - 50, width - 50, height - 50);
-            g.drawLine(50, height - 50, 50, 50);
+            g.drawLine(20, height - 20, width - 20, height - 20);
+            g.drawLine(20, height - 20, 20, 20);
 
             for (int i = 0; i < 256; i++) {
                 g.setColor(Color.RED);
-                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaR[i] * escala)));
+                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaR[i] * escala)));
                 g.setColor(Color.GREEN);
-                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaG[i] * escala)));
+                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaG[i] * escala)));
                 g.setColor(Color.BLUE);
-                g.drawLine(50 + i, height - 50, 50 + i, (int) (height - 50 - (histogramaB[i] * escala)));
+                g.drawLine(20 + i, height - 20, 20 + i, (int) (height - 20 - (histogramaB[i] * escala)));
             }
         }
 
