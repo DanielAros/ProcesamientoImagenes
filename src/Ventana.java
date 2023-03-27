@@ -6,20 +6,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
+
 
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras;
 
     double[][] back;
     double n = 0;
@@ -68,13 +67,18 @@ public class Ventana extends JFrame implements ActionListener {
         //HISTOGRAMA
         histograma1 = new JLabel();
         histograma1.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
-        histograma1.setBounds(50, 600, imagenOriginal.getIconWidth(), 100);
+        histograma1.setBounds(50, 550, imagenOriginal.getIconWidth(), 100);
         contentPanel.add(histograma1);
 
+        //HISTOGRAMA 2
+        histograma2 = new JLabel();
+        histograma2.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 0, 0)));
+        histograma2.setBounds(700, 550, imagenOriginal.getIconWidth(), 100);
+        contentPanel.add(histograma2);
 
         //IMAGEN PROCESADA
         contenedorImgProcesada = new JLabel();
-        contenedorImgProcesada.setBounds(650, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
+        contenedorImgProcesada.setBounds(700, 50, imagenOriginal.getIconWidth(), imagenOriginal.getIconHeight());
 
         contentPanel.add(contenedorImgOriginal);
         contentPanel.add(contenedorImgProcesada);
@@ -82,44 +86,54 @@ public class Ventana extends JFrame implements ActionListener {
 
         //BOTONES
         btnNegativo = new JButton("Negativo");
-        btnNegativo.setBounds(50, 750, 100, 20);
+        btnNegativo.setBounds(50, 700, 100, 20);
         btnNegativo.addActionListener(this);
         contentPanel.add(btnNegativo);
 
         btnGris = new JButton("Gris");
-        btnGris.setBounds(170, 750, 100, 20);
+        btnGris.setBounds(170, 700, 100, 20);
         btnGris.addActionListener(this);
         contentPanel.add(btnGris);
 
         btnBrillo = new JButton("Brillo");
-        btnBrillo.setBounds(290, 750, 100, 20);
+        btnBrillo.setBounds(290, 700, 100, 20);
         btnBrillo.addActionListener(this);
         contentPanel.add(btnBrillo);
 
         btnBinarizacion = new JButton("Binarizacion");
-        btnBinarizacion.setBounds(410, 750, 100, 20);
+        btnBinarizacion.setBounds(410, 700, 100, 20);
         btnBinarizacion.addActionListener(this);
         contentPanel.add(btnBinarizacion);
 
         btnUmbral = new JButton("Umbral");
-        btnUmbral.setBounds(530, 750, 100, 20);
+        btnUmbral.setBounds(530, 700, 100, 20);
         btnUmbral.addActionListener(this);
         contentPanel.add(btnUmbral);
 
         btnComposicion = new JButton("Composicion");
-        btnComposicion.setBounds(650, 750, 100, 20);
+        btnComposicion.setBounds(650, 700, 100, 20);
         btnComposicion.addActionListener(this);
         contentPanel.add(btnComposicion);
 
         btnSuma = new JButton("Suma");
-        btnSuma.setBounds(770, 750, 100, 20);
+        btnSuma.setBounds(770, 700, 100, 20);
         btnSuma.addActionListener(this);
         contentPanel.add(btnSuma);
 
         btnResta = new JButton("Resta");
-        btnResta.setBounds(900, 750, 100, 20);
+        btnResta.setBounds(900, 700, 100, 20);
         btnResta.addActionListener(this);
         contentPanel.add(btnResta);
+
+        btnAtras = new JButton("Atras");
+        btnAtras.setBounds(1020, 700, 100, 20);
+        btnAtras.addActionListener(this);
+        contentPanel.add(btnAtras);
+
+        btnReiniciar = new JButton("Reiniciar");
+        btnReiniciar.setBounds(1140, 700, 100, 20);
+        btnReiniciar.addActionListener(this);
+        contentPanel.add(btnReiniciar);
 
         setVisible(true);
     }
@@ -142,6 +156,7 @@ public class Ventana extends JFrame implements ActionListener {
         int[][] mr = new int[ancho][alto];
         int[][] mg = new int[ancho][alto];
         int[][] mb = new int[ancho][alto];
+
         for (int i = 0; i < ancho; i++){
             for (int j = 0; j < alto; j++){
                 m[i][j] = imgN.getRGB(i, j); // RGB = (R*65536)+(G*256)+B , (when R is RED, G is GREEN and B is BLUE)
@@ -192,6 +207,7 @@ public class Ventana extends JFrame implements ActionListener {
             ImageIcon prueba = new ImageIcon(imgN);
             contenedorImgOriginal.setIcon(imagenOriginal);
             contenedorImgProcesada.setIcon(prueba);
+
         } else if(e.paramString().indexOf("Brillo") != -1){
             System.out.println("Brillo");
 
@@ -264,10 +280,10 @@ public class Ventana extends JFrame implements ActionListener {
             for (int i = 0; i < ancho; i++) {
                 for (int j = 0; j < alto; j++) {
                     Color c = new Color(imgBin.getRGB(i, j));
-                    int r = (int) (c.getRed() * 0.299);
-                    int g = (int) (c.getGreen() * 0.587);
-                    int b = (int) (c.getBlue() * 0.114);
-                    int suma = r + g + b;
+                    double r = (c.getRed() * 0.299);
+                    double g = (c.getGreen() * 0.587);
+                    double b = (c.getBlue() * 0.114);
+                    double suma = r + g + b;
                     if (suma > 128) {
                         bin.setRGB(i, j, Color.WHITE.getRGB());
                     } else {
@@ -297,10 +313,10 @@ public class Ventana extends JFrame implements ActionListener {
             for (int i = 0; i < ancho; i++) {
                 for (int j = 0; j < alto; j++) {
                     Color c = new Color(imgUmb.getRGB(i, j));
-                    int red = c.getRed();
-                    int green = c.getGreen();
-                    int blue = c.getBlue();
-                    int grayLevel = (red + green + blue) / 3;
+                    double red = c.getRed();
+                    double green = c.getGreen();
+                    double blue = c.getBlue();
+                    double grayLevel = (red + green + blue) / 3;
                     if (grayLevel < umbral1 || grayLevel > umbral2) {
                         umb.setRGB(i, j, Color.WHITE.getRGB());
                     } else {
@@ -430,24 +446,28 @@ public class Ventana extends JFrame implements ActionListener {
 
             for(int i = 0; i < ancho; i++){
                 for(int j = 0; j < alto; j++){
-                    int rgb1 = imgRes.getRGB(i, j);
-                    int rgb2 = imgProcesada.getRGB(i, j);
-                    int r1 = (rgb1 >> 16) & 0xFF;
-                    int g1 = (rgb1 >> 8) & 0xFF;
-                    int b1 = (rgb1 >> 0) & 0xFF;
-                    int r2 = (rgb2 >> 16) & 0xFF;
-                    int g2 = (rgb2 >> 8) & 0xFF;
-                    int b2 = (rgb2 >> 0) & 0xFF;
-                    int r = Math.abs(r1 - r2);
-                    int g = Math.abs(g1 - g2);
-                    int b = Math.abs(b1 - b2);
-                    int rgb = (r << 16) | (g << 8) | (b << 0);
-                    imgResultado.setRGB(i, j, rgb);
+
+                    Color color1 = new Color(imgRes.getRGB(i, j));
+                    Color color2 = new Color(imgProcesada.getRGB(i, j));
+
+                    int r = Math.max(color1.getRed() - color2.getRed(), 0);
+                    int g = Math.max(color1.getGreen() - color2.getGreen(), 0);
+                    int b = Math.max(color1.getBlue() - color2.getBlue(), 0);
+                    Color nuevoColor = new Color(r, g, b);
+
+                    imgResultado.setRGB(i, j, nuevoColor.getRGB());
                 }
             }
             ImageIcon prueba = new ImageIcon(imgResultado);
 
             contenedorImgProcesada.setIcon(prueba);
+
+            //Reiniciar
+        } else if (e.paramString().indexOf("Atras") != -1) {
+            
+        } else if(e.paramString().indexOf("Reiniciar") != -1){
+
+
         }
     }
 
