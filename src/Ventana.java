@@ -6,20 +6,23 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
 import java.io.File;
 import java.io.IOException;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
-
+import java.awt.image.Kernel;
+import java.nio.Buffer;
+import java.nio.file.Path;
 
 
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion;
 
     double[][] back;
     double n = 0;
@@ -98,6 +101,11 @@ public class Ventana extends JFrame implements ActionListener {
         btnNegativo.setBounds(50, 600, 100, 20);
         btnNegativo.addActionListener(this);
         contentPanel.add(btnNegativo);
+
+        btnConvolucion = new JButton("Convolucion");
+        btnConvolucion.setBounds(50, 630, 100, 20);
+        btnConvolucion.addActionListener(this);
+        contentPanel.add(btnConvolucion);
 
         btnGris = new JButton("Gris");
         btnGris.setBounds(170, 600, 100, 20);
@@ -197,7 +205,32 @@ public class Ventana extends JFrame implements ActionListener {
 
         } else if (e.paramString().indexOf("Reiniciar") != -1) {
 
+        } else if (e.paramString().indexOf("Convolucion") != -1) {
+            try {
+                filtroConvolucion(imgN);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
+    }
+
+    private void filtroConvolucion(BufferedImage imgN) throws IOException {
+        BufferedImage conv = ImageIO.read(new File(PATH));
+
+        float[] kernelData = {
+                -1, -1, -1,
+                -1,  8, -1,
+                -1, -1, -1
+        };
+        Kernel kernel = new Kernel(3, 3, kernelData);
+
+        ConvolveOp convolveOp = new ConvolveOp(kernel);
+
+        BufferedImage prueba = convolveOp.filter(conv, null);
+
+        contenedorImgProcesada.setIcon(new ImageIcon(prueba));
+
+        llamadaHistograma(new ImageIcon(prueba));
     }
 
     public static int sumarValoresPixel(int valorPixel1, int valorPixel2) {
@@ -390,7 +423,7 @@ public class Ventana extends JFrame implements ActionListener {
 
         Rectangle rect = contenedorImgProcesada.getBounds();
         int x = rect.x + 58;
-        int y = rect.y + 104;
+        int y = rect.y + 84;
         rect.setLocation(x, y);
 
         Robot robot = null;
@@ -431,7 +464,7 @@ public class Ventana extends JFrame implements ActionListener {
 
         Rectangle rect = contenedorImgProcesada.getBounds();
         int x = rect.x + 58;
-        int y = rect.y + 104;
+        int y = rect.y + 84;
         rect.setLocation(x, y);
 
         Robot robot = null;
@@ -476,7 +509,7 @@ public class Ventana extends JFrame implements ActionListener {
 
         Rectangle rect = contenedorImgProcesada.getBounds();
         int x = rect.x + 58;
-        int y = rect.y + 104;
+        int y = rect.y + 84;
         rect.setLocation(x, y);
 
         Robot robot = null;
