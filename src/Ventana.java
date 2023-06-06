@@ -14,15 +14,13 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.Kernel;
-import java.nio.Buffer;
-import java.nio.file.Path;
 
 
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnRuido;
 
     double[][] back;
     double n = 0;
@@ -106,6 +104,11 @@ public class Ventana extends JFrame implements ActionListener {
         btnConvolucion.setBounds(50, 630, 100, 20);
         btnConvolucion.addActionListener(this);
         contentPanel.add(btnConvolucion);
+
+        btnRuido = new JButton("Ruido");
+        btnRuido.setBounds(170, 630, 100, 20);
+        btnRuido.addActionListener(this);
+        contentPanel.add(btnRuido);
 
         btnGris = new JButton("Gris");
         btnGris.setBounds(170, 600, 100, 20);
@@ -211,8 +214,15 @@ public class Ventana extends JFrame implements ActionListener {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+        } else if (e.paramString().indexOf("Ruido") != -1){
+            filtroRuido(imgN);
         }
     }
+
+    private void filtroRuido(BufferedImage imgN) {
+
+    }
+
 
     private void filtroConvolucion(BufferedImage imgN) throws IOException {
         BufferedImage conv = ImageIO.read(new File(PATH));
