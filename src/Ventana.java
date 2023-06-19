@@ -18,11 +18,13 @@ import java.nio.Buffer;
 import java.nio.file.Path;
 
 
+
+
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes;
 
     double[][] back;
     double n = 0;
@@ -31,6 +33,8 @@ public class Ventana extends JFrame implements ActionListener {
     private int ancho, alto;
     private double[][] m;
     private int[][] mr, mg, mb;
+
+    private int contador = 0;
 
     public Ventana(String PATH) throws IOException {
         super("Procesamiento de imagenes");
@@ -142,13 +146,18 @@ public class Ventana extends JFrame implements ActionListener {
         btnResta.addActionListener(this);
         contentPanel.add(btnResta);
 
+        btnBordes = new JButton("Bordes");
+        btnBordes.setBounds(1020, 600, 100, 20);
+        btnBordes.addActionListener(this);
+        contentPanel.add(btnBordes);
+
         btnAtras = new JButton("Atras");
-        btnAtras.setBounds(1020, 600, 100, 20);
+        btnAtras.setBounds(1140, 600, 100, 20);
         btnAtras.addActionListener(this);
         contentPanel.add(btnAtras);
 
         btnReiniciar = new JButton("Reiniciar");
-        btnReiniciar.setBounds(1140, 600, 100, 20);
+        btnReiniciar.setBounds(1280, 600, 100, 20);
         btnReiniciar.addActionListener(this);
         contentPanel.add(btnReiniciar);
     }
@@ -157,9 +166,37 @@ public class Ventana extends JFrame implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         System.out.println(e.paramString());
 //        contenedorImgProcesada.setIcon(imagenOriginal);
-        BufferedImage imgN = null;
+        BufferedImage imgN;
         try {
-            imgN = ImageIO.read(new File(PATH));
+            if(contador == 0){
+                imgN = null;
+                System.out.println("entro");
+                imgN = ImageIO.read(new File(PATH));
+                contador++;
+            }else{
+                System.out.println("contador+1");
+                contenedorImgOriginal.setIcon(imagenProcesada);
+                Image imagen1 = imagenProcesada.getImage();
+                BufferedImage imagenProcesar = (BufferedImage) imagen1;
+                Histograma histograma = new Histograma(imagenProcesar);
+                contentPanel.add(histograma).setBounds(50, 450, imagenOriginal.getIconWidth(), 100);
+                // Obtener la imagen del ImageIcon
+                java.awt.Image image = imagenProcesada.getImage();
+
+                // Crear un BufferedImage con las dimensiones de la imagen
+                BufferedImage bufferedImage = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+
+                // Obtener el contexto gráfico del BufferedImage
+                Graphics2D g2d = bufferedImage.createGraphics();
+
+                // Dibujar la imagen en el contexto gráfico
+                g2d.drawImage(image, 0, 0, null);
+
+                // Liberar los recursos del contexto gráfico
+                g2d.dispose();
+
+                imgN = bufferedImage;
+            }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -201,6 +238,8 @@ public class Ventana extends JFrame implements ActionListener {
         } else if (e.paramString().indexOf("Resta") != -1) {
             filtroResta(imgN);
 
+        }else if (e.paramString().indexOf("Bordes") != -1) {
+            bordes(imgN);
         } else if (e.paramString().indexOf("Atras") != -1) {
 
         } else if (e.paramString().indexOf("Reiniciar") != -1) {
@@ -214,8 +253,11 @@ public class Ventana extends JFrame implements ActionListener {
         }
     }
 
+    //negativo, sumar, desenfoque, bordes, mediana, restar, binzarizacion, binerizacion comp
+    //segmentacion, contraste, grises
+
     private void filtroConvolucion(BufferedImage imgN) throws IOException {
-        BufferedImage conv = ImageIO.read(new File(PATH));
+        BufferedImage conv = imgN;
 
         float[] kernelData = {
                 -1, -1, -1,
@@ -228,9 +270,12 @@ public class Ventana extends JFrame implements ActionListener {
 
         BufferedImage prueba = convolveOp.filter(conv, null);
 
-        contenedorImgProcesada.setIcon(new ImageIcon(prueba));
+        imagenProcesada = new ImageIcon(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
 
-        llamadaHistograma(new ImageIcon(prueba));
+//        contenedorImgProcesada.setIcon(new ImageIcon(prueba));
+
+        llamadaHistograma(imagenProcesada);
     }
 
     public static int sumarValoresPixel(int valorPixel1, int valorPixel2) {
@@ -279,10 +324,11 @@ public class Ventana extends JFrame implements ActionListener {
             }
         }
 
-        ImageIcon prueba = new ImageIcon(imagen);
-        contenedorImgProcesada.setIcon(prueba);
+//        ImageIcon prueba = new ImageIcon(imagen);
+        imagenProcesada = new ImageIcon(imagen);
+        contenedorImgProcesada.setIcon(imagenProcesada);
 
-        llamadaHistograma(prueba);
+        llamadaHistograma(imagenProcesada);
     }
 
     private void filtroNegativo(BufferedImage imagen){
@@ -298,13 +344,13 @@ public class Ventana extends JFrame implements ActionListener {
 
         System.out.println("Imagen -> Negativo");
 
-        ImageIcon prueba = new ImageIcon(imagen);
+//        ImageIcon prueba = new ImageIcon(imagen);
+        imagenProcesada = new ImageIcon(imagen);
+        llamadaHistograma(imagenProcesada);
 
-        llamadaHistograma(prueba);
 
 
-
-        contenedorImgProcesada.setIcon(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
     }
 
     private void filtroBrillo(BufferedImage imagen){
@@ -352,7 +398,7 @@ public class Ventana extends JFrame implements ActionListener {
                     }
                 }
                 filtroBrilloHistograma(finalImgB);
-                contenedorImgProcesada.repaint();
+//                contenedorImgProcesada.repaint();
                 System.out.println("Factor de brillo: " + n);
             }
         });
@@ -360,9 +406,9 @@ public class Ventana extends JFrame implements ActionListener {
     }
 
     private void filtroBrilloHistograma(BufferedImage imagen){
-        ImageIcon prueba = new ImageIcon(imagen);
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        imagenProcesada = new ImageIcon(imagen);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
 
     private void filtroBinzarizacion(BufferedImage imagen){
@@ -384,10 +430,10 @@ public class Ventana extends JFrame implements ActionListener {
                 }
             }
         }
-        ImageIcon prueba = new ImageIcon(bin);
+        imagenProcesada = new ImageIcon(bin);
 
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
     private void filtroUmbral(BufferedImage imagen){
         System.out.println("Umbral");
@@ -410,10 +456,10 @@ public class Ventana extends JFrame implements ActionListener {
                 }
             }
         }
-        ImageIcon prueba = new ImageIcon(umb);
+        imagenProcesada = new ImageIcon(umb);
 
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
 
     private void filtroComposicion(BufferedImage imagen){
@@ -451,10 +497,10 @@ public class Ventana extends JFrame implements ActionListener {
         g2d.drawImage(imgProcesada, 0, 0, null);
         g2d.dispose();
 
-        ImageIcon prueba = new ImageIcon(imgResultado);
+        imagenProcesada = new ImageIcon(imgResultado);
 
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
 
     private void filtroResta(BufferedImage imagen){
@@ -496,10 +542,10 @@ public class Ventana extends JFrame implements ActionListener {
                 imgResultado.setRGB(i, j, nuevoColor.getRGB());
             }
         }
-        ImageIcon prueba = new ImageIcon(imgResultado);
+        imagenProcesada = new ImageIcon(imgResultado);
 
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
 
     private void filtroSuma(BufferedImage imagen){
@@ -536,9 +582,71 @@ public class Ventana extends JFrame implements ActionListener {
                 imgResultado.setRGB(i, j, valorResultado);
             }
         }
-        ImageIcon prueba = new ImageIcon(imgResultado);
+        imagenProcesada = new ImageIcon(imgResultado);
 
-        contenedorImgProcesada.setIcon(prueba);
-        llamadaHistograma(prueba);
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
     }
+
+    private void bordes(BufferedImage imagen){
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage resultImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+
+        int[][] sobelX = {
+                {-1, 0, 1},
+                {-2, 0, 2},
+                {-1, 0, 1}
+        };
+
+        int[][] sobelY = {
+                {-1, -2, -1},
+                {0, 0, 0},
+                {1, 2, 1}
+        };
+
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                int pixelX = (
+                        sobelX[0][0] * getGrayLevel(imagen.getRGB(x - 1, y - 1))) +
+                        (sobelX[0][1] * getGrayLevel(imagen.getRGB(x, y - 1))) +
+                        (sobelX[0][2] * getGrayLevel(imagen.getRGB(x + 1, y - 1))) +
+                        (sobelX[1][0] * getGrayLevel(imagen.getRGB(x - 1, y))) +
+                        (sobelX[1][1] * getGrayLevel(imagen.getRGB(x, y))) +
+                        (sobelX[1][2] * getGrayLevel(imagen.getRGB(x + 1, y))) +
+                        (sobelX[2][0] * getGrayLevel(imagen.getRGB(x - 1, y + 1))) +
+                        (sobelX[2][1] * getGrayLevel(imagen.getRGB(x, y + 1))) +
+                        (sobelX[2][2] * getGrayLevel(imagen.getRGB(x + 1, y + 1)));
+
+                int pixelY = (
+                        sobelY[0][0] * getGrayLevel(imagen.getRGB(x - 1, y - 1))) +
+                        (sobelY[0][1] * getGrayLevel(imagen.getRGB(x, y - 1))) +
+                        (sobelY[0][2] * getGrayLevel(imagen.getRGB(x + 1, y - 1))) +
+                        (sobelY[1][0] * getGrayLevel(imagen.getRGB(x - 1, y))) +
+                        (sobelY[1][1] * getGrayLevel(imagen.getRGB(x, y))) +
+                        (sobelY[1][2] * getGrayLevel(imagen.getRGB(x + 1, y))) +
+                        (sobelY[2][0] * getGrayLevel(imagen.getRGB(x - 1, y + 1))) +
+                        (sobelY[2][1] * getGrayLevel(imagen.getRGB(x, y + 1))) +
+                        (sobelY[2][2] * getGrayLevel(imagen.getRGB(x + 1, y + 1)));
+
+                int magnitude = (int) Math.sqrt((pixelX * pixelX) + (pixelY * pixelY));
+                magnitude = Math.min(255, Math.max(0, magnitude)); // Asegurar que el valor esté en el rango 0-255
+                resultImage.setRGB(x, y, new Color(magnitude, magnitude, magnitude).getRGB());
+            }
+        }
+
+        imagenProcesada = new ImageIcon(resultImage);
+
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
+    }
+
+    public static int getGrayLevel(int rgb) {
+        int red = (rgb >> 16) & 0xFF;
+        int green = (rgb >> 8) & 0xFF;
+        int blue = rgb & 0xFF;
+        return (red + green + blue) / 3;
+    }
+
+//    Reduccion de ruido
 }
