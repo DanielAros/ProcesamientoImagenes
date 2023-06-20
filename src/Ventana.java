@@ -13,18 +13,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.image.Kernel;
-import java.nio.Buffer;
-import java.nio.file.Path;
-
-
-
 
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes, btnSegmentacion;
 
     double[][] back;
     double n = 0;
@@ -151,15 +145,20 @@ public class Ventana extends JFrame implements ActionListener {
         btnBordes.addActionListener(this);
         contentPanel.add(btnBordes);
 
-        btnAtras = new JButton("Atras");
-        btnAtras.setBounds(1140, 600, 100, 20);
-        btnAtras.addActionListener(this);
-        contentPanel.add(btnAtras);
+//        btnAtras = new JButton("Atras");
+//        btnAtras.setBounds(1140, 600, 100, 20);
+//        btnAtras.addActionListener(this);
+//        contentPanel.add(btnAtras);
+//
+//        btnReiniciar = new JButton("Reiniciar");
+//        btnReiniciar.setBounds(1280, 600, 100, 20);
+//        btnReiniciar.addActionListener(this);
+//        contentPanel.add(btnReiniciar);
 
-        btnReiniciar = new JButton("Reiniciar");
-        btnReiniciar.setBounds(1280, 600, 100, 20);
-        btnReiniciar.addActionListener(this);
-        contentPanel.add(btnReiniciar);
+        btnSegmentacion = new JButton("Segmentacion");
+        btnSegmentacion.setBounds(1020, 650, 100, 20);
+        btnSegmentacion.addActionListener(this);
+        contentPanel.add(btnSegmentacion);
     }
 
 
@@ -230,7 +229,7 @@ public class Ventana extends JFrame implements ActionListener {
            filtroBinzarizacion(imgN);
         } else if (e.paramString().indexOf("Umbral") != -1) {
             // Segmentación por Umbrales
-            filtroUmbral(imgN);
+            filtroUmbral(imgN, 60, 200);
         } else if (e.paramString().indexOf("Composicion") != -1) {
             filtroComposicion(imgN);
         } else if (e.paramString().indexOf("Suma") != -1) {
@@ -240,7 +239,9 @@ public class Ventana extends JFrame implements ActionListener {
 
         }else if (e.paramString().indexOf("Bordes") != -1) {
             bordes(imgN);
-        } else if (e.paramString().indexOf("Atras") != -1) {
+        } else if (e.paramString().indexOf("Segmentacion") != -1) {
+            segmentacion(imgN, 128);
+        }else if (e.paramString().indexOf("Atras") != -1) {
 
         } else if (e.paramString().indexOf("Reiniciar") != -1) {
 
@@ -256,24 +257,70 @@ public class Ventana extends JFrame implements ActionListener {
     //negativo, sumar, desenfoque, bordes, mediana, restar, binzarizacion, binerizacion comp
     //segmentacion, contraste, grises
 
-    private void filtroConvolucion(BufferedImage imgN) throws IOException {
-        BufferedImage conv = imgN;
-
-        float[] kernelData = {
-                -1, -1, -1,
-                -1,  8, -1,
-                -1, -1, -1
+    private void filtroConvolucion(BufferedImage imagen) throws IOException {
+        int[][] kernelMatrix = {
+                {-1, -1, -1},
+                {-1,  8, -1},
+                {-1, -1, -1}
         };
-        Kernel kernel = new Kernel(3, 3, kernelData);
 
-        ConvolveOp convolveOp = new ConvolveOp(kernel);
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage filteredImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        BufferedImage prueba = convolveOp.filter(conv, null);
+        int kernelSize = kernelMatrix.length;
+        int kernelHalfSize = kernelSize / 2;
 
-        imagenProcesada = new ImageIcon(prueba);
+        // Recorrer los píxeles de la imagen
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Variables para almacenar los valores RGB resultantes
+                int redSum = 0;
+                int greenSum = 0;
+                int blueSum = 0;
+
+                // Recorrer los vecinos del píxel actual según el tamaño del kernel
+                for (int ky = 0; ky < kernelSize; ky++) {
+                    for (int kx = 0; kx < kernelSize; kx++) {
+                        int pixelX = x + (kx - kernelHalfSize);
+                        int pixelY = y + (ky - kernelHalfSize);
+
+                        // Verificar si el píxel vecino está dentro de los límites de la imagen
+                        if (pixelX >= 0 && pixelX < width && pixelY >= 0 && pixelY < height) {
+                            // Obtener el color del píxel vecino
+                            Color neighborColor = new Color(imagen.getRGB(pixelX, pixelY));
+
+                            // Obtener los componentes RGB del píxel vecino
+                            int neighborRed = neighborColor.getRed();
+                            int neighborGreen = neighborColor.getGreen();
+                            int neighborBlue = neighborColor.getBlue();
+
+                            // Obtener el valor del kernel correspondiente al vecino
+                            int kernelValue = kernelMatrix[ky][kx];
+
+                            // Acumular los valores ponderados de los componentes RGB
+                            redSum += neighborRed * kernelValue;
+                            greenSum += neighborGreen * kernelValue;
+                            blueSum += neighborBlue * kernelValue;
+                        }
+                    }
+                }
+
+                // Limitar los valores RGB resultantes entre 0 y 255
+                int filteredRed = Math.min(Math.max(redSum, 0), 255);
+                int filteredGreen = Math.min(Math.max(greenSum, 0), 255);
+                int filteredBlue = Math.min(Math.max(blueSum, 0), 255);
+
+                // Crear un nuevo color con los valores filtrados
+                Color filteredColor = new Color(filteredRed, filteredGreen, filteredBlue);
+
+                // Establecer el color filtrado en la imagen resultante
+                filteredImage.setRGB(x, y, filteredColor.getRGB());
+            }
+        }
+
+        imagenProcesada = new ImageIcon(filteredImage);
         contenedorImgProcesada.setIcon(imagenProcesada);
-
-//        contenedorImgProcesada.setIcon(new ImageIcon(prueba));
 
         llamadaHistograma(imagenProcesada);
     }
@@ -306,55 +353,70 @@ public class Ventana extends JFrame implements ActionListener {
 
     private void filtroGris(BufferedImage imagen){
         System.out.println("Gris");
-        double[][] mG = new double[ancho][alto];
-        int[][] mrgbG = new int[ancho][alto];
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage grayscaleImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        for (int i = 0; i < ancho; i++) {
-            for (int j = 0; j < alto; j++) {
-                double rgb = (mr[i][j] + mg[i][j] + mb[i][j]) / 3;
-                double gris = (rgb * 65536) + (rgb * 256) + (rgb);
-                imagen.setRGB(i, j, (int) gris);
-            }
-        }
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color del píxel actual
+                Color pixelColor = new Color(imagen.getRGB(x, y));
 
-        for (int i = 0; i < ancho; i++) {
-            for (int j = 0; j < alto; j++) {
-                mG[i][j] = imagen.getRGB(i, j);
-                mrgbG[i][j] = ((int) m[i][j]) & 0x000000FF;
+                // Calcular el valor promedio de los componentes RGB
+                int averageValue = (pixelColor.getRed() + pixelColor.getGreen() + pixelColor.getBlue()) / 3;
+
+                // Crear un nuevo color en escala de grises con el valor promedio
+                Color grayscaleColor = new Color(averageValue, averageValue, averageValue);
+
+                // Establecer el color en escala de grises en la imagen resultante
+                grayscaleImage.setRGB(x, y, grayscaleColor.getRGB());
             }
         }
 
 //        ImageIcon prueba = new ImageIcon(imagen);
-        imagenProcesada = new ImageIcon(imagen);
+        imagenProcesada = new ImageIcon(grayscaleImage);
         contenedorImgProcesada.setIcon(imagenProcesada);
 
         llamadaHistograma(imagenProcesada);
     }
 
     private void filtroNegativo(BufferedImage imagen){
-        for (int i = 0; i < imagen.getWidth(); i++) {
-            for (int j = 0; j < imagen.getHeight(); j++) {
-                double r = 255 - mr[i][j];
-                double g = 255 - mg[i][j];
-                double b = 255 - mb[i][j];
-                double neg = (r * 65536) + (g * 256) + (b);
-                imagen.setRGB(i, j, (int) neg);
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage negativeImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color del píxel actual
+                Color pixelColor = new Color(imagen.getRGB(x, y));
+
+                // Obtener los componentes RGB del color
+                int red = pixelColor.getRed();
+                int green = pixelColor.getGreen();
+                int blue = pixelColor.getBlue();
+
+                // Invertir los valores de los componentes RGB
+                int invertedRed = 255 - red;
+                int invertedGreen = 255 - green;
+                int invertedBlue = 255 - blue;
+
+                // Crear un nuevo color con los componentes invertidos
+                Color invertedColor = new Color(invertedRed, invertedGreen, invertedBlue);
+
+                // Establecer el color invertido en la imagen negativa
+                negativeImage.setRGB(x, y, invertedColor.getRGB());
             }
         }
-
-        System.out.println("Imagen -> Negativo");
-
-//        ImageIcon prueba = new ImageIcon(imagen);
-        imagenProcesada = new ImageIcon(imagen);
+        imagenProcesada = new ImageIcon(negativeImage);
         llamadaHistograma(imagenProcesada);
-
-
 
         contenedorImgProcesada.setIcon(imagenProcesada);
     }
 
     private void filtroBrillo(BufferedImage imagen){
         System.out.println("Brillo");
+        contenedorImgProcesada.setIcon(new ImageIcon(imagen));
+        llamadaHistograma(new ImageIcon(imagen));
 
         BufferedImage finalImgB = imagen;
         btnBrillo.addKeyListener(new KeyAdapter() {
@@ -367,42 +429,45 @@ public class Ventana extends JFrame implements ActionListener {
                 if (l.getKeyChar() == '+') {
                     n--;
                 }
-                if (n > 0) {
-                    for (int i = 0; i < ancho; i++) {
-                        for (int j = 0; j < alto; j++) {
-                            double r = Math.round((Math.pow(((mr[i][j]) / 255.0), n)) * 255.0);
-                            double g = Math.round((Math.pow(((mg[i][j]) / 255.0), n)) * 255.0);
-                            double b = Math.round((Math.pow(((mb[i][j]) / 255.0), n)) * 255.0);
-                            double brillop = (r * 65536) + (g * 256) + (b);
-                            ;
-                            finalImgB.setRGB(i, j, (int) brillop);
-                        }
+                int width = imagen.getWidth();
+                int height = imagen.getHeight();
+                BufferedImage adjustedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+                for (int y = 0; y < height; y++) {
+                    for (int x = 0; x < width; x++) {
+                        // Obtener el color del píxel actual
+                        Color pixelColor = new Color(imagen.getRGB(x, y));
+
+                        // Obtener los componentes RGB del color
+                        int red = pixelColor.getRed();
+                        int green = pixelColor.getGreen();
+                        int blue = pixelColor.getBlue();
+
+                        // Ajustar el brillo sumando o restando el valor de ajuste a cada componente
+                        red += n;
+                        green += n;
+                        blue += n;
+
+                        // Asegurarse de que los valores estén dentro del rango válido (0-255)
+                        red = Math.min(255, Math.max(0, red));
+                        green = Math.min(255, Math.max(0, green));
+                        blue = Math.min(255, Math.max(0, blue));
+
+                        // Crear un nuevo color con los componentes ajustados
+                        Color adjustedColor = new Color(red, green, blue);
+
+                        // Establecer el color ajustado en la imagen de salida
+                        adjustedImage.setRGB(x, y, adjustedColor.getRGB());
                     }
                 }
-                if (n < 0) {
-                    for (int i = 0; i < ancho; i++) {
-                        for (int j = 0; j < alto; j++) {
-                            double r = Math.round((Math.pow(((mr[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
-                            double g = Math.round((Math.pow(((mg[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
-                            double b = Math.round((Math.pow(((mb[i][j]) / 255.0), 1 / (Math.abs(n)))) * 255.0);
-                            double brillop = (r * 65536) + (g * 256) + (b);
-                            finalImgB.setRGB(i, j, (int) brillop);
-                        }
-                    }
-                }
-                if (n == 0) {
-                    for (int i = 0; i < ancho; i++) {
-                        for (int j = 0; j < alto; j++) {
-                            finalImgB.setRGB(i, j, (int) back[i][j]);
-                        }
-                    }
-                }
-                filtroBrilloHistograma(finalImgB);
+
+//                return adjustedImage;
+                filtroBrilloHistograma(adjustedImage);
 //                contenedorImgProcesada.repaint();
                 System.out.println("Factor de brillo: " + n);
             }
         });
-        filtroBrilloHistograma(finalImgB);
+//        filtroBrilloHistograma(finalImgB);
     }
 
     private void filtroBrilloHistograma(BufferedImage imagen){
@@ -435,28 +500,39 @@ public class Ventana extends JFrame implements ActionListener {
         contenedorImgProcesada.setIcon(imagenProcesada);
         llamadaHistograma(imagenProcesada);
     }
-    private void filtroUmbral(BufferedImage imagen){
+    private void filtroUmbral(BufferedImage imagen, int threshold1, int threshold2){
         System.out.println("Umbral");
 
-        BufferedImage umb = new BufferedImage(ancho, alto, BufferedImage.TYPE_BYTE_BINARY);
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage binaryImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_BINARY);
 
-        int umbral1 = 120; // Umbral 1
-        int umbral2 = 180; // Umbral 2
-        for (int i = 0; i < ancho; i++) {
-            for (int j = 0; j < alto; j++) {
-                Color c = new Color(imagen.getRGB(i, j));
-                double red = c.getRed();
-                double green = c.getGreen();
-                double blue = c.getBlue();
-                double grayLevel = (red + green + blue) / 3;
-                if (grayLevel < umbral1 || grayLevel > umbral2) {
-                    umb.setRGB(i, j, Color.WHITE.getRGB());
-                } else {
-                    umb.setRGB(i, j, Color.BLACK.getRGB());
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color del píxel actual
+                Color pixelColor = new Color(imagen.getRGB(x, y));
+
+                // Obtener el nivel de gris del píxel
+                int grayscaleValue = pixelColor.getRed(); // Suponemos una imagen en escala de grises (R = G = B)
+
+                // Aplicar umbrales para binarizar la imagen compuesta
+                int binaryValue = 0;
+                if (grayscaleValue <= threshold1) {
+                    binaryValue = 0;
+                } else if (grayscaleValue > threshold1 && grayscaleValue <= threshold2) {
+                    binaryValue = 128;
+                } else if (grayscaleValue > threshold2) {
+                    binaryValue = 255;
                 }
+
+                // Crear un nuevo color binario
+                Color binaryColor = new Color(binaryValue, binaryValue, binaryValue);
+
+                // Establecer el color binario en la imagen binarizada
+                binaryImage.setRGB(x, y, binaryColor.getRGB());
             }
         }
-        imagenProcesada = new ImageIcon(umb);
+        imagenProcesada = new ImageIcon(binaryImage);
 
         contenedorImgProcesada.setIcon(imagenProcesada);
         llamadaHistograma(imagenProcesada);
@@ -648,5 +724,39 @@ public class Ventana extends JFrame implements ActionListener {
         return (red + green + blue) / 3;
     }
 
-//    Reduccion de ruido
+    private void segmentacion(BufferedImage imagen, int threshold){
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage segmentedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color del píxel actual
+                Color pixelColor = new Color(imagen.getRGB(x, y));
+
+                // Obtener el valor de brillo (escala de grises) del píxel
+                int brightness = getBrightness(pixelColor);
+
+                // Comprobar si el valor de brillo supera el umbral
+                if (brightness >= threshold) {
+                    // Si supera el umbral, establecer el píxel como blanco
+                    segmentedImage.setRGB(x, y, Color.WHITE.getRGB());
+                } else {
+                    // Si no supera el umbral, establecer el píxel como negro
+                    segmentedImage.setRGB(x, y, Color.BLACK.getRGB());
+                }
+            }
+        }
+
+        imagenProcesada = new ImageIcon(segmentedImage);
+
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
+    }
+    public static int getBrightness(Color color) {
+        int red = color.getRed();
+        int green = color.getGreen();
+        int blue = color.getBlue();
+        return (red + green + blue) / 3; // Valor promedio de los componentes RGB (escala de grises)
+    }
 }
