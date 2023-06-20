@@ -13,12 +13,15 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
+import java.awt.image.Kernel;
+
 
 public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
     private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes, btnSegmentacion;
+
 
     double[][] back;
     double n = 0;
@@ -251,11 +254,14 @@ public class Ventana extends JFrame implements ActionListener {
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+        } else if (e.paramString().indexOf("Ruido") != -1){
+            filtroRuido(imgN);
         }
     }
 
-    //negativo, sumar, desenfoque, bordes, mediana, restar, binzarizacion, binerizacion comp
-    //segmentacion, contraste, grises
+    private void filtroRuido(BufferedImage imgN) {
+
+    }
 
     private void filtroConvolucion(BufferedImage imagen) throws IOException {
         int[][] kernelMatrix = {
