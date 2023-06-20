@@ -20,7 +20,7 @@ public class Ventana extends JFrame implements ActionListener {
     private JPanel contentPanel;
     private ImageIcon imagenOriginal, imagenProcesada;
     private JLabel contenedorImgOriginal, contenedorImgProcesada, histograma1, histograma2;
-    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes, btnSegmentacion;
+    private JButton btnNegativo, btnGris, btnBrillo, btnBinarizacion, btnUmbral, btnComposicion, btnSuma, btnResta, btnReiniciar, btnAtras, btnConvolucion, btnBordes, btnSegmentacion, btnMediana;
 
 
     double[][] back;
@@ -133,6 +133,7 @@ public class Ventana extends JFrame implements ActionListener {
         btnComposicion.addActionListener(this);
         contentPanel.add(btnComposicion);
 
+
         btnSuma = new JButton("Suma");
         btnSuma.setBounds(770, 600, 100, 20);
         btnSuma.addActionListener(this);
@@ -147,6 +148,11 @@ public class Ventana extends JFrame implements ActionListener {
         btnBordes.setBounds(1020, 600, 100, 20);
         btnBordes.addActionListener(this);
         contentPanel.add(btnBordes);
+
+        btnMediana = new JButton("Mediana");
+        btnMediana.setBounds(200, 630, 100, 20);
+        btnMediana.addActionListener(this);
+        contentPanel.add(btnMediana);
 
 //        btnAtras = new JButton("Atras");
 //        btnAtras.setBounds(1140, 600, 100, 20);
@@ -244,6 +250,8 @@ public class Ventana extends JFrame implements ActionListener {
             bordes(imgN);
         } else if (e.paramString().indexOf("Segmentacion") != -1) {
             segmentacion(imgN, 128);
+        }else if (e.paramString().indexOf("Mediana") != -1) {
+            filtroMediana(imgN);
         }else if (e.paramString().indexOf("Atras") != -1) {
 
         } else if (e.paramString().indexOf("Reiniciar") != -1) {
@@ -764,5 +772,85 @@ public class Ventana extends JFrame implements ActionListener {
         int green = color.getGreen();
         int blue = color.getBlue();
         return (red + green + blue) / 3; // Valor promedio de los componentes RGB (escala de grises)
+    }
+
+    private void filtroMediana(BufferedImage imagen){
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage filteredImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+
+        // Recorrer los píxeles de la imagen
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener los píxeles vecinos en una matriz 3x3
+                int[][] neighborhood = getPixelNeighborhood(imagen, x, y);
+
+                // Obtener los valores de intensidad de los píxeles vecinos
+                int[] redValues = new int[9];
+                int[] greenValues = new int[9];
+                int[] blueValues = new int[9];
+
+                for (int i = 0; i < 9; i++) {
+                    redValues[i] = new Color(neighborhood[i / 3][i % 3]).getRed();
+                    greenValues[i] = new Color(neighborhood[i / 3][i % 3]).getGreen();
+                    blueValues[i] = new Color(neighborhood[i / 3][i % 3]).getBlue();
+                }
+
+                // Ordenar los valores de intensidad
+                sortArray(redValues);
+                sortArray(greenValues);
+                sortArray(blueValues);
+
+                // Obtener la mediana de los valores de intensidad
+                int medianRed = redValues[4];
+                int medianGreen = greenValues[4];
+                int medianBlue = blueValues[4];
+
+                // Establecer el color mediano en la imagen filtrada
+                filteredImage.setRGB(x, y, new Color(medianRed, medianGreen, medianBlue).getRGB());
+            }
+        }
+
+        imagenProcesada = new ImageIcon(filteredImage);
+
+        contenedorImgProcesada.setIcon(imagenProcesada);
+        llamadaHistograma(imagenProcesada);
+    }
+
+    public static int[][] getPixelNeighborhood(BufferedImage image, int x, int y) {
+        int[][] neighborhood = new int[3][3];
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        // Obtener los píxeles vecinos y considerar los bordes de la imagen
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                int neighborX = x + j;
+                int neighborY = y + i;
+
+                // Verificar los límites de la imagen
+                if (neighborX >= 0 && neighborX < width && neighborY >= 0 && neighborY < height) {
+                    neighborhood[i + 1][j + 1] = image.getRGB(neighborX, neighborY);
+                } else {
+                    // Si el píxel vecino está fuera de los límites, se establece como el píxel original
+                    neighborhood[i + 1][j + 1] = image.getRGB(x, y);
+                }
+            }
+        }
+
+        return neighborhood;
+    }
+
+    public static void sortArray(int[] array) {
+        for (int i = 0; i < array.length - 1; i++) {
+            for (int j = 0; j < array.length - i - 1; j++) {
+                if (array[j] > array[j + 1]) {
+                    // Intercambiar los elementos si están en el orden incorrecto
+                    int temp = array[j];
+                    array[j] = array[j + 1];
+                    array[j + 1] = temp;
+                }
+            }
+        }
     }
 }
