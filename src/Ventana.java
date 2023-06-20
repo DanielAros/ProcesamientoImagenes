@@ -242,9 +242,9 @@ public class Ventana extends JFrame implements ActionListener {
         } else if (e.paramString().indexOf("Composicion") != -1) {
             filtroComposicion(imgN);
         } else if (e.paramString().indexOf("Suma") != -1) {
-            filtroSuma(imgN);
+            filtroSuma(imgN, 100);
         } else if (e.paramString().indexOf("Resta") != -1) {
-            filtroResta(imgN);
+            filtroResta(imgN, 100);
 
         }else if (e.paramString().indexOf("Bordes") != -1) {
             bordes(imgN);
@@ -593,86 +593,75 @@ public class Ventana extends JFrame implements ActionListener {
         llamadaHistograma(imagenProcesada);
     }
 
-    private void filtroResta(BufferedImage imagen){
+    private void filtroResta(BufferedImage imagen, int constantValue){
         System.out.println("Resta");
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage subtractedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        BufferedImage imgRes = imagen;
+        // Recorrer los píxeles de la imagen
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color original del píxel
+                Color originalColor = new Color(imagen.getRGB(x, y));
 
-        Rectangle rect = contenedorImgProcesada.getBounds();
-        int x = rect.x + 58;
-        int y = rect.y + 84;
-        rect.setLocation(x, y);
+                // Restar el valor constante a los componentes de color
+                int red = originalColor.getRed() - constantValue;
+                int green = originalColor.getGreen() - constantValue;
+                int blue = originalColor.getBlue() - constantValue;
 
-        Robot robot = null;
-        try {
-            robot = new Robot();
+                // Limitar los valores de color entre 0 y 255
+                red = Math.max(red, 0);
+                green = Math.max(green, 0);
+                blue = Math.max(blue, 0);
 
-        } catch (AWTException ex) {
-            throw new RuntimeException(ex);
-        }
+                red = Math.min(red, 255);
+                green = Math.min(green, 255);
+                blue = Math.min(blue, 255);
 
-        System.out.println(rect);
-        BufferedImage imgCaptura = robot.createScreenCapture(rect);
+                // Crear un nuevo color con los componentes resultantes
+                Color subtractedColor = new Color(red, green, blue);
 
-        BufferedImage imgProcesada = imgCaptura.getSubimage(0, 0, ancho, alto);
-
-        BufferedImage imgResultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
-
-        for (int i = 0; i < ancho; i++) {
-            for (int j = 0; j < alto; j++) {
-
-                Color color1 = new Color(imgRes.getRGB(i, j));
-                Color color2 = new Color(imgProcesada.getRGB(i, j));
-
-                int r = Math.max(color1.getRed() - color2.getRed(), 0);
-                int g = Math.max(color1.getGreen() - color2.getGreen(), 0);
-                int b = Math.max(color1.getBlue() - color2.getBlue(), 0);
-                Color nuevoColor = new Color(r, g, b);
-
-                imgResultado.setRGB(i, j, nuevoColor.getRGB());
+                // Establecer el color resultante en la imagen resultante
+                subtractedImage.setRGB(x, y, subtractedColor.getRGB());
             }
         }
-        imagenProcesada = new ImageIcon(imgResultado);
+        imagenProcesada = new ImageIcon(subtractedImage);
 
         contenedorImgProcesada.setIcon(imagenProcesada);
         llamadaHistograma(imagenProcesada);
     }
 
-    private void filtroSuma(BufferedImage imagen){
+    private void filtroSuma(BufferedImage imagen, int constantValue){
         System.out.println("Suma");
+        int width = imagen.getWidth();
+        int height = imagen.getHeight();
+        BufferedImage filteredImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-        BufferedImage imgSum = imagen;
+        // Recorrer los píxeles de la imagen
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                // Obtener el color del píxel original
+                Color originalColor = new Color(imagen.getRGB(x, y));
 
-        Rectangle rect = contenedorImgProcesada.getBounds();
-        int x = rect.x + 58;
-        int y = rect.y + 84;
-        rect.setLocation(x, y);
+                // Sumar el valor constante a los componentes de color
+                int red = originalColor.getRed() + constantValue;
+                int green = originalColor.getGreen() + constantValue;
+                int blue = originalColor.getBlue() + constantValue;
 
-        Robot robot = null;
-        try {
-            robot = new Robot();
+                // Limitar los valores de color entre 0 y 255
+                red = Math.min(Math.max(red, 0), 255);
+                green = Math.min(Math.max(green, 0), 255);
+                blue = Math.min(Math.max(blue, 0), 255);
 
-        } catch (AWTException ex) {
-            throw new RuntimeException(ex);
-        }
+                // Crear un nuevo color con los componentes modificados
+                Color filteredColor = new Color(red, green, blue);
 
-        System.out.println(rect);
-        BufferedImage imgCaptura = robot.createScreenCapture(rect);
-
-        BufferedImage imgProcesada = imgCaptura.getSubimage(0, 0, ancho, alto);
-
-        BufferedImage imgResultado = new BufferedImage(ancho, alto, BufferedImage.TYPE_INT_ARGB);
-
-        for (int i = 0; i < ancho; i++) {
-            for (int j = 0; j < alto; j++) {
-                int valorPixel1 = imgSum.getRGB(i, j);
-                int valorPixel2 = imgProcesada.getRGB(i, j);
-                int valorResultado = sumarValoresPixel(valorPixel1, valorPixel2);
-
-                imgResultado.setRGB(i, j, valorResultado);
+                // Establecer el color filtrado en la imagen resultante
+                filteredImage.setRGB(x, y, filteredColor.getRGB());
             }
         }
-        imagenProcesada = new ImageIcon(imgResultado);
+        imagenProcesada = new ImageIcon(filteredImage);
 
         contenedorImgProcesada.setIcon(imagenProcesada);
         llamadaHistograma(imagenProcesada);
